@@ -26,6 +26,8 @@ public class TaskHelper {
 
 	private final static Pattern projectPattern = Pattern.compile("\\+(\\w+)");
 
+	private final static Pattern duePattern = Pattern.compile("DUE:(\\d{4}-\\d{2}-\\d{2})");
+
 	public static Task createTask(long id, String line){
 		//prio and text
 		Matcher m = prioPattern.matcher(line);
@@ -48,14 +50,19 @@ public class TaskHelper {
 		return getItems(projectPattern, text);
 	}
 
+	public static String getDueDate(String text){
+		List<String> items = getItems(duePattern, text);
+		return items.size() == 1 ? items.get(0) : null;
+	}
+
 	private static List<String> getItems(Pattern p, String text){
 		Matcher m = p.matcher(text);
-		List<String> projects = new ArrayList<String>();
+		List<String> items = new ArrayList<String>();
 		while(m.find()){
-			String project = m.group(1);
-			projects.add(project);
+			String item = m.group(1);
+			items.add(item);
 		}
-		return projects;
+		return items;
 	}
 
 	public static Comparator<Task> byId = new Comparator<Task>() {
@@ -96,8 +103,38 @@ public class TaskHelper {
 		}
 	};
 
+	public static Comparator<Task> byDueDate = new Comparator<Task>() {
+		@Override
+		public int compare(Task arg0, Task arg1) {
+			try{
+				if(arg0.dueDate == null && arg1.dueDate == null){
+					return byText.compare(arg0, arg1);
+				}
+				if(arg0.dueDate == null){
+					return 1;
+				}
+				if(arg1.dueDate == null){
+					return -1;
+				}
+				return arg0.dueDate.compareTo(arg1.dueDate);
+			}catch(Exception e){
+				Log.e(TAG, e.getMessage(), e);
+			}
+			return -1;
+		}
+	};
+
 	public static String toString(char prio) {
 		return prio >= 'A' && prio <= 'Z' ? "" + prio : "" + NONE;
+	}
+
+	public static Task getById(List<Task> tasks, long id) {
+		for (Task item : tasks) {
+			if (item.id == id) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 	public static List<Task> getByPrio(List<Task> items, char prio) {
@@ -250,6 +287,12 @@ public class TaskHelper {
 		dest.text = src.text;
 	}
 
+	/**
+	 * Find by text and prio
+	 * @param tasks
+	 * @param task
+	 * @return copy of found task
+	 */
 	public static Task find(List<Task> tasks, Task task){
 		for (Task task2 : tasks) {
 			if(task2.text.equals(task.text) && task2.prio == task.prio){

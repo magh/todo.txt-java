@@ -15,6 +15,8 @@ public class Task implements Serializable {
 	public List<String> contexts;
 
 	public List<String> projects;
+	
+	public String dueDate;
 
 	public Task(long id, char prio, String text) {
 		this.id = id;
@@ -22,6 +24,7 @@ public class Task implements Serializable {
 		this.text = text;
 		this.contexts = TaskHelper.getContexts(text);
 		this.projects = TaskHelper.getProjects(text);
+		this.dueDate = TaskHelper.getDueDate(text);
 	}
 
 	@Override
